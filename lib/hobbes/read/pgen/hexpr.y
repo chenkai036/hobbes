@@ -80,7 +80,11 @@ Expr* pickNestedExp(Exprs* exprs, const LexicalAnnotation& la) {
   if (exprs->size() == 0) {
     return new Unit(la);
   } else if (exprs->size() == 1) {
-    return (*exprs)[0]->clone();
+    auto expr = (*exprs)[0]->clone();
+    auto annotation = expr->la();
+    annotation.span = la.span;
+    expr->la(annotation);
+    return expr;
   } else {
     MkRecord::FieldDefs fds;
     for (size_t i = 0; i < exprs->size(); ++i) {

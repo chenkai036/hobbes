@@ -24,10 +24,13 @@ struct LexicalAnnotation {
 
   BuffOrFilenamePtr bfptr;
   Pos               p0, p1;
+  LexRange          span;
 
   std::string filename() const;
   std::string lineDesc() const;
   str::seq lines(size_t, size_t) const;
+
+  bool operator<(const LexicalAnnotation&) const;
 
   static LexicalAnnotation null();
   static LexicalAnnotation merge(const LexicalAnnotation&, const LexicalAnnotation&);
@@ -42,6 +45,7 @@ public:
 
   // the lexical annotation data (source file/buffer and line:col range)
   const LexicalAnnotation& la() const;
+  void la(const LexicalAnnotation&);
 
   // push some hidden state to apply in bulk to subsequent annotations
   static void pushFileContext(const std::string&);
