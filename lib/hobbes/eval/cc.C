@@ -147,7 +147,7 @@ SearchEntries cc::search(const std::string& e,   const std::string& t)   { hlock
 ModulePtr cc::readModuleFile(const std::string& x) {
   hlock _;
   auto result = this->readModuleFileF(this, x);
-  if (!linter.run(result)) {
+  if (!linter.run(result, *this)) {
     linter.report(std::cerr);
   }
   return result;
@@ -158,7 +158,7 @@ void cc::setReadModuleFileFn(readModuleFileFn f) { this->readModuleFileF = f; }
 ModulePtr cc::readModule(const std::string& x) {
   hlock _;
   auto result = this->readModuleF(this, x);
-  if (!linter.run(result)) {
+  if (!linter.run(result, *this)) {
     linter.report(std::cerr);
   }
   return result;
@@ -169,7 +169,7 @@ void cc::setReadModuleFn(readModuleFn f) { this->readModuleF = f; }
 std::pair<std::string, ExprPtr> cc::readExprDefn(const std::string& x) {
   hlock _;
   auto result = this->readExprDefnF(this, x);
-  if (!linter.run(result.second)) {
+  if (!linter.run(result.second, *this)) {
     linter.report(std::cerr);
   }
   return result;
@@ -180,7 +180,7 @@ void cc::setReadExprDefnFn(readExprDefnFn f) { this->readExprDefnF = f; }
 ExprPtr cc::readExpr(const std::string& x) {
   hlock _;
   auto result = this->readExprF(this, x);
-  if (!linter.run(result)) {
+  if (!linter.run(result, *this)) {
     linter.report(std::cerr);
   }
   return result;

@@ -1,4 +1,7 @@
 #include <hobbes/eval/lint.H>
+#include <hobbes/eval/cc.H>
+#include <hobbes/lang/type.H>
+#include <hobbes/lang/typeinf.H>
 
 namespace hobbes {
 
@@ -14,7 +17,7 @@ StreamT& operator<<(StreamT& os, const Suggestion& s) {
 
 class CheckBracketF final : public switchExprTyFn, public switchMDefTyFn {
 public:
-  CheckBracketF(Linter& linter) : linter(linter) {}
+  CheckBracketF(Linter& linter, cc& c) : linter(linter), c(c) {}
 
   QualTypePtr withTy(const QualTypePtr& qt) const override {
     return qt;
@@ -28,9 +31,18 @@ public:
   ExprPtr with(const App* v) const override {
     if (auto var = is<Var>(v->fn())) {
       if (var->value() == "if") {
+        auto thenblock = v->args()[1];
         auto elseblock = v->args()[2];
-        if (!isNestedExpr(elseblock) && isInfixExpr(elseblock)) {
-          linter.raise(Suggestion{LintCode::Enum::INFIX_AFTER_ELSE, v, "use brackets in else-block to avoid ambiguity"});
+        if (!isNestedExpr(elseblock)) {
+          if (auto binop = isBinaryApp(elseblock)) {
+            auto & left = binop->args()[0];
+            auto & right = binop->args()[1];
+            if (isInfix(binop->fn(), left, right)) {
+              if (unifiable(c.typeEnv(), getTypeof(thenblock)->monoType(), getTypeof(left)->monoType())) {
+                linter.raise(Suggestion{LintCode::Enum::INFIX_AFTER_ELSE, v, "use brackets in else-block to avoid ambiguity"});
+              }
+            }
+          }
         }
       }
     }
@@ -55,20 +67,26 @@ private:
     return la.span.first < la.p0 && la.p1 < la.span.second;
   }
 
-  static bool isInfixExpr(const ExprPtr& expr) {
+  static App* isBinaryApp(const ExprPtr& expr) {
     if (auto app = is<App>(expr)) {
-      auto & args = app->args();
-      if (args.size() == 2) {
-        auto & op = app->fn();
-        auto & left = args[0];
-        auto & right = args[1];
-        return left->la() < op->la() && op->la() < right->la();
+      if (app->args().size() == 2) {
+        return app;
       }
     }
-    return false;
+    return nullptr;
+  }
+
+  static bool isInfix(const ExprPtr& op, const ExprPtr& left, const ExprPtr& right) {
+    return left->la() < op->la() && op->la() < right->la();
+  }
+
+  QualTypePtr getTypeof(const ExprPtr& expr) const {
+    auto qt = c.unsweetenExpression(ExprPtr(expr->clone()))->type();
+    return simplifyVarNames(qt);
   }
 
   Linter& linter;
+  cc&     c;
 };
 
 /// linter
@@ -83,16 +101,16 @@ void Linter::report(std::ostream& os) const {
   }
 }
 
-bool Linter::run(const ExprPtr& expr) {
+bool Linter::run(const ExprPtr& expr, cc& cc) {
   suggestions.clear(); // TODO stack them, not clear them
-  switchOf(expr, CheckBracketF(*this));
+  switchOf(expr, CheckBracketF(*this, cc));
   return suggestions.empty();
 }
 
-bool Linter::run(const ModulePtr& module) {
+bool Linter::run(const ModulePtr& module, cc& cc) {
   suggestions.clear(); // TODO stack them, not clear them
   for (const auto & mdef : module->definitions()) {
-    switchOf(mdef, CheckBracketF(*this));
+    switchOf(mdef, CheckBracketF(*this, cc));
   }
   return suggestions.empty();
 }

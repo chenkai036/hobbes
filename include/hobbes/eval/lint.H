@@ -19,10 +19,12 @@ struct Suggestion {
   const char* text;
 };
 
+class cc;
+
 class Linter {
 public:
-  bool run(const ExprPtr&);
-  bool run(const ModulePtr&);
+  bool run(const ExprPtr&, cc&);
+  bool run(const ModulePtr&, cc&);
   void raise(const Suggestion&);
   void report(std::ostream& os) const;
 
