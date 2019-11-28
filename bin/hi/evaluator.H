@@ -3,7 +3,10 @@
 #define HI_EVALUATOR_HPP_INCLUDED
 
 #include <hobbes/hobbes.H>
+#include <hobbes/eval/lint.H>
 #include "www.H"
+
+#include <memory>
 
 namespace hi {
 
@@ -24,8 +27,9 @@ struct Args {
   NameVals                 scriptNameVals;
   bool                     machineREPL;    // should we structure console I/O for machine-reading?
   strs                     opts;
+  bool                     lint;
 
-  Args() : useDefColors(false), silent(false), replPort(-1), httpdPort(-1), exitAfterEval(false), machineREPL(false) {
+  Args() : useDefColors(false), silent(false), replPort(-1), httpdPort(-1), exitAfterEval(false), machineREPL(false), lint(false) {
   }
 };
 
@@ -63,6 +67,7 @@ private:
   bool       silent;
   WWWServer* wwwd;
   Args::strs opts;
+  std::unique_ptr<hobbes::Linter> linter;
 
   hobbes::ExprPtr readExpr(const std::string&);
   std::pair<std::string, hobbes::ExprPtr> readExprDefn(const std::string&);

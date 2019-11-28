@@ -10,7 +10,6 @@
 #include <hobbes/lang/preds/subtype/obj.H>
 #include <hobbes/lang/typepreds.H>
 #include <hobbes/read/parser.H>
-#include <hobbes/eval/lint.H>
 #include <hobbes/eval/jitcc.H>
 #include <hobbes/eval/search.H>
 
@@ -314,9 +313,6 @@ private:
 
   // the JIT engine that compiles our monotyped expressions
   jitcc* jit;
-
-  // linter
-  Linter linter;
 
 public:
   // compiler-local type structure caches for internal use

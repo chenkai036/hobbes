@@ -14,6 +14,23 @@
 
 namespace hi {
 
+template <typename T>
+const T& runlint(hobbes::Linter* linter, hobbes::cc& cc, const T& expr) {
+  if (linter) {
+    linter->run(expr, cc);
+    linter->report(std::cerr);
+  }
+  return expr;
+}
+
+const hobbes::ExprDefn& runlint(hobbes::Linter* linter, hobbes::cc& cc, const hobbes::ExprDefn& def) {
+  if (linter) {
+    linter->run(def.second, cc);
+    linter->report(std::cerr);
+  }
+  return def;
+}
+
 // allocate a string in global memory
 hobbes::array<char>* allocGlobalStr(const char* x, size_t len) {
   hobbes::array<char>* r = reinterpret_cast<hobbes::array<char>*>(malloc(sizeof(long) + len * sizeof(char)));
@@ -59,7 +76,7 @@ void bindArguments(hobbes::cc& ctx, const Args::NameVals& args) {
 }
 
 // set up the evaluation environment for our cc
-evaluator::evaluator(const Args& args) : silent(args.silent), wwwd(0), opts(args.opts) {
+evaluator::evaluator(const Args& args) : silent(args.silent), wwwd(0), opts(args.opts), linter(args.lint ? new hobbes::Linter() : nullptr) {
   using namespace hobbes;
 
   bindArguments(this->ctx, args.scriptNameVals);
@@ -69,7 +86,7 @@ evaluator::evaluator(const Args& args) : silent(args.silent), wwwd(0), opts(args
   if (args.replPort > 0) {
     installNetREPL(args.replPort, &this->ctx);
   }
-  
+
   if (args.httpdPort > 0) {
     // run a local web server (for diagnostics and alternate queries) if requested
     this->wwwd = new WWWServer(args.httpdPort, &this->ctx);
@@ -116,15 +133,16 @@ void evaluator::showInstances(const std::string& cname) {
 }
 
 void evaluator::loadModule(const std::string& mfile) {
-  hobbes::compile(&this->ctx, this->ctx.readModuleFile(mfile));
-  
+  auto module = runlint(linter.get(), ctx, this->ctx.readModuleFile(mfile));
+  hobbes::compile(&this->ctx, module);
+
   if (!this->silent && !loadSilently(mfile)) {
     std::cout << setfgc(colors.hlfg) << "loaded module " << setfgc(colors.stdtextfg) << setbold() << "'" << mfile << "'" << std::endl;
   }
 }
 
 void evaluator::evalExpr(const std::string& expr) {
-  std::pair<std::string, hobbes::ExprPtr> ed = readExprDefn(expr);
+  std::pair<std::string, hobbes::ExprPtr> ed = runlint(linter.get(), ctx, readExprDefn(expr));
 
   if (!ed.first.empty()) {
     this->ctx.define(ed.first, ed.second);

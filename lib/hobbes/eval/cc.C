@@ -144,48 +144,16 @@ SearchEntries cc::search(const ExprPtr&     e,   const MonoTypePtr& dst) { hlock
 SearchEntries cc::search(const std::string& e,   const MonoTypePtr& dst) { hlock _; return search(readExpr(e), dst); }
 SearchEntries cc::search(const std::string& e,   const std::string& t)   { hlock _; return search(readExpr(e), readMonoType(t)); }
 
-ModulePtr cc::readModuleFile(const std::string& x) {
-  hlock _;
-  auto result = this->readModuleFileF(this, x);
-  if (!linter.run(result, *this)) {
-    linter.report(std::cerr);
-  }
-  return result;
-}
-
+ModulePtr cc::readModuleFile(const std::string& x) { hlock _; return this->readModuleFileF(this, x); }
 void cc::setReadModuleFileFn(readModuleFileFn f) { this->readModuleFileF = f; }
 
-ModulePtr cc::readModule(const std::string& x) {
-  hlock _;
-  auto result = this->readModuleF(this, x);
-  if (!linter.run(result, *this)) {
-    linter.report(std::cerr);
-  }
-  return result;
-}
-
+ModulePtr cc::readModule(const std::string& x) { hlock _; return this->readModuleF(this, x); }
 void cc::setReadModuleFn(readModuleFn f) { this->readModuleF = f; }
 
-std::pair<std::string, ExprPtr> cc::readExprDefn(const std::string& x) {
-  hlock _;
-  auto result = this->readExprDefnF(this, x);
-  if (!linter.run(result.second, *this)) {
-    linter.report(std::cerr);
-  }
-  return result;
-}
-
+std::pair<std::string, ExprPtr> cc::readExprDefn(const std::string& x) { hlock _; return this->readExprDefnF(this, x); }
 void cc::setReadExprDefnFn(readExprDefnFn f) { this->readExprDefnF = f; }
 
-ExprPtr cc::readExpr(const std::string& x) {
-  hlock _;
-  auto result = this->readExprF(this, x);
-  if (!linter.run(result, *this)) {
-    linter.report(std::cerr);
-  }
-  return result;
-}
-
+ExprPtr cc::readExpr(const std::string& x) { hlock _; return this->readExprF(this, x); }
 void cc::setReadExprFn(readExprFn f) { this->readExprF = f; }
 
 MonoTypePtr cc::readMonoType(const std::string& x) {
