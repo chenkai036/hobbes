@@ -615,6 +615,8 @@ Args processCommandLine(int argc, char** argv) {
     } else if (arg == "-z") {
       r.machineREPL = true;
       r.silent = true;
+    } else if (arg == "--lint") {
+      r.lint = true;
     } else {
       switch (m) {
       default:

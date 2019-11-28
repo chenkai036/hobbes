@@ -889,7 +889,9 @@ struct substVarF : public switchExprC<ExprPtr> {
     } else {
       if (mapped) *mapped = true;
 
-      return ve->second;
+      auto subst = ExprPtr(ve->second->clone());
+      subst->la(v->la());
+      return subst;
     }
   }
 
@@ -925,7 +927,7 @@ struct substVarF : public switchExprC<ExprPtr> {
   ExprPtr with(const MkVariant* v) const {
     return ExprPtr(new MkVariant(v->label(), switchOf(v->value(), *this), v->la()));
   }
-  
+
   ExprPtr with(const MkRecord* v) const {
     return ExprPtr(new MkRecord(switchOf(v->fields(), *this), v->la()));
   }
@@ -1246,7 +1248,7 @@ const MonoTypePtr& requireMonotype(const TEnvPtr& tenv, const ExprPtr& e) {
     ss << "Failed to compile expression due to unresolved type constraint" << (cs.size() > 1 ? "s" : "");
     throw unsolved_constraints(*e, ss.str(), cs);
   }
-  
+
   return e->type()->monoType();
 }
 
@@ -1296,7 +1298,7 @@ struct freeVarF : public switchExprC<VarSet> {
   VarSet with     (const Assump* v)    const { return freeVars(v->expr()); }
   VarSet with     (const Pack* v)      const { return freeVars(v->expr()); }
   VarSet with     (const Unpack* v)    const { return setUnion(list(freeVars(v->package()), setDifference(freeVars(v->expr()), toSet(list(v->varName()))))); }
-  
+
   VarSet with(const LetRec* v) const {
     std::vector<VarSet> fvs;
     str::set            vns = toSet(v->varNames());
@@ -1362,7 +1364,7 @@ struct etvarNamesF : public switchExprC<UnitV> {
   UnitV with     (const Assump* v)    const { switchOf(v->expr(), *this); tvarNames(v->ty(), this->out); return an(v); }
   UnitV with     (const Pack* v)      const { switchOf(v->expr(), *this); return an(v); }
   UnitV with     (const Unpack* v)    const { switchOf(v->package(), *this); switchOf(v->expr(), *this); return an(v); }
-  
+
   UnitV with(const LetRec* v) const {
     for (const auto& b : v->bindings()) {
       switchOf(b.second, *this);
@@ -1529,7 +1531,7 @@ struct encodeExprF : public switchExpr<UnitV> {
     encode(v->value(), this->out);
     return unitv;
   }
-  
+
   UnitV with(const Let* v) const {
     encode(Let::type_case_id, this->out);
     encode(v->var(),      this->out);
@@ -1544,21 +1546,21 @@ struct encodeExprF : public switchExpr<UnitV> {
     encode(v->bodyExpr(), this->out);
     return unitv;
   }
-  
+
   UnitV with(const Fn* v) const {
     encode(Fn::type_case_id, this->out);
     encode(v->varNames(), this->out);
     encode(v->body(),     this->out);
     return unitv;
   }
-  
+
   UnitV with(const App* v) const {
     encode(App::type_case_id, this->out);
     encode(v->fn(),   this->out);
     encode(v->args(), this->out);
     return unitv;
   }
-  
+
   UnitV with(const Assign* v) const {
     encode(Assign::type_case_id, this->out);
     encode(v->left(),  this->out);
@@ -1604,7 +1606,7 @@ struct encodeExprF : public switchExpr<UnitV> {
     }
     return unitv;
   }
-  
+
   UnitV with(const Switch* v) const {
     encode(Switch::type_case_id, this->out);
     encode(v->expr(), this->out);
@@ -1617,14 +1619,14 @@ struct encodeExprF : public switchExpr<UnitV> {
     }
     return unitv;
   }
- 
+
   UnitV with(const Proj* v) const {
     encode(Proj::type_case_id, this->out);
     encode(v->record(), this->out);
     encode(v->field(),  this->out);
     return unitv;
   }
-  
+
   UnitV with(const Assump* v) const {
     encode(Assump::type_case_id, this->out);
     encode(v->expr(), this->out);
@@ -1637,7 +1639,7 @@ struct encodeExprF : public switchExpr<UnitV> {
     encode(v->expr(), this->out);
     return unitv;
   }
-  
+
   UnitV with(const Unpack* v) const {
     encode(Unpack::type_case_id, this->out);
     encode(v->varName(), this->out);
@@ -1825,7 +1827,7 @@ void decode(ExprPtr* out, std::istream& in) {
 
     decode(&v,  in);
     decode(&bs, in);
-    
+
     bool hasDef = false;
     decode(&hasDef, in);
     if (hasDef) {
@@ -1857,7 +1859,7 @@ void decode(ExprPtr* out, std::istream& in) {
     }
     break;
   }
- 
+
   case Proj::type_case_id: {
     ExprPtr     r;
     std::string f;

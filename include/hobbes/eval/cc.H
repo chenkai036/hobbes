@@ -150,7 +150,7 @@ public:
 
   // is a variable merely forward-declared, or does it have a definition?
   bool hasValueBinding(const std::string& vname);
-  
+
   // process and define a set of residual definitions produced by type unqualification
   bool drainingDefs;
   LetRec::Bindings drainDefs;
@@ -313,6 +313,7 @@ private:
 
   // the JIT engine that compiles our monotyped expressions
   jitcc* jit;
+
 public:
   // compiler-local type structure caches for internal use
   std::unordered_map<MonoType*, MonoTypePtr> unappTyDefns;

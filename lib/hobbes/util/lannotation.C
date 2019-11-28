@@ -14,6 +14,7 @@ LexicalAnnotation::LexicalAnnotation() {
   this->bfptr = *n;
   this->p0    = Pos(0,0);
   this->p1    = Pos(0,0);
+  this->span  = LexRange(p0, p1);
 }
 
 std::string LexicalAnnotation::filename() const {
@@ -61,6 +62,10 @@ str::seq LexicalAnnotation::lines(size_t i, size_t f) const {
   }
 }
 
+bool LexicalAnnotation::operator<(const LexicalAnnotation& rhs) const {
+  return p1 < rhs.p0;
+}
+
 LexicalAnnotation LexicalAnnotation::null() {
   return LexicalAnnotation();
 }
@@ -70,6 +75,7 @@ LexicalAnnotation LexicalAnnotation::merge(const LexicalAnnotation& a0, const Le
   r.bfptr = a0.bfptr;
   r.p0    = a0.p0;
   r.p1    = a1.p1;
+  r.span  = LexRange(a0.span.first, a1.span.second);
   return r;
 }
 
@@ -95,6 +101,10 @@ LexicallyAnnotated::LexicallyAnnotated(const LexRange& r) : lannotation(make(r.f
 LexicallyAnnotated::LexicallyAnnotated(const Pos& p0, const Pos& p1) : lannotation(make(p0, p1)) {
 }
 
+void LexicallyAnnotated::la(const LexicalAnnotation& la) {
+  this->lannotation = la;
+}
+
 const LexicalAnnotation& LexicallyAnnotated::la() const {
   return this->lannotation;
 }
@@ -118,6 +128,7 @@ LexicalAnnotation LexicallyAnnotated::make(const Pos& p0, const Pos& p1) {
   r.bfptr = s.size() > 0 ? s.top() : BuffOrFilenamePtr(new BuffOrFilename(false, "???"));
   r.p0    = p0;
   r.p1    = p1;
+  r.span  = LexRange(p0, p1);
   return r;
 }
 

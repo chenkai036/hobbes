@@ -155,6 +155,7 @@ void cc::setReadExprDefnFn(readExprDefnFn f) { this->readExprDefnF = f; }
 
 ExprPtr cc::readExpr(const std::string& x) { hlock _; return this->readExprF(this, x); }
 void cc::setReadExprFn(readExprFn f) { this->readExprF = f; }
+
 MonoTypePtr cc::readMonoType(const std::string& x) {
   ExprPtr e = readExpr("()::"+x);
   if (const Assump* a = is<Assump>(e)) {
@@ -256,7 +257,7 @@ void cc::drainUnqualifyDefs(const Definitions& ds) {
     ExprPtr     ne   = forwardDeclared ? ExprPtr(new Assump(e, this->tenv->lookup(vname)->instantiate(), e->la())) : e;
     ExprPtr     xe   = unsweetenExpression(this->tenv, vname, ne);
     PolyTypePtr xety = hobbes::generalize(xe->type());
-    
+
     if (isMonotype(xety)) {
       this->drainDefs.push_back(LetRec::Binding(vname, xe));
       if (!forwardDeclared) { this->tenv->bind(vname, xety); }
@@ -347,7 +348,7 @@ struct repTypeAliasesF : public switchTyFn {
   typedef std::pair<str::seq, MonoTypePtr>        TTyDef;
   typedef std::unordered_map<std::string, TTyDef> TTyDefs;
   const TTyDefs& ttyDefs;
- 
+
   repTypeAliasesF(const TTyDefs& ttyDefs) : ttyDefs(ttyDefs) {
   }
 
@@ -429,7 +430,7 @@ void cc::overload(const std::string& tyclass, const MonoTypes& tys) {
   hlock _;
   UnqualifierPtr tyc = this->tenv->lookupUnqualifier(tyclass);
   TClassPtr      c   = std::dynamic_pointer_cast<TClass>(tyc);
-  
+
   if (c.get() == 0) {
     throw std::runtime_error("Cannot define overload in '" + tyclass + "', class does not exist.");
   } else if (c->members().size() != 0) {
@@ -451,7 +452,7 @@ void cc::overload(const std::string& tyclass, const MonoTypes& tys, const ExprPt
   hlock _;
   UnqualifierPtr tyc = this->tenv->lookupUnqualifier(tyclass);
   TClassPtr      c   = std::dynamic_pointer_cast<TClass>(tyc);
-  
+
   if (c.get() == 0) {
     throw std::runtime_error("Cannot define overload in '" + tyclass + "', class does not exist.");
   } else if (c->members().size() != 1) {
@@ -542,7 +543,7 @@ std::string cc::showTypeEnv() const {
   table[0].push_back("Variable");
   table[1].push_back("");
   table[2].push_back("Type");
-  
+
   dumpTypeEnv(&table[0], &table[2]);
   str::repeat(table[0].size() - 1, " :: ", &table[1]);
 
@@ -662,7 +663,7 @@ bool cc::buildColumnwiseMatches() const { return this->columnwiseMatches; }
 
 void cc::regexMaxExprDFASize(size_t f) { this->maxExprDFASize = f; }
 size_t cc::regexMaxExprDFASize() const { return this->maxExprDFASize; }
-  
+
 void cc::throwOnHugeRegexDFA(bool f) { this->shouldThrowOnHugeRegexDFA = f; }
 bool cc::throwOnHugeRegexDFA() const { return this-> shouldThrowOnHugeRegexDFA; }
 
