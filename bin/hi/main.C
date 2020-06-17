@@ -665,9 +665,13 @@ void initHI(evaluator* eval, bool useDefColors) {
 
 int main(int argc, char** argv) {
   try {
+    auto leak = new char[32];
+    
     // read command-line arguments
     Args args = processCommandLine(argc, argv);
 
+    delete leak;
+    
     // start an evaluator and process ~/.hirc if it exists
     // (this should apply whatever settings the user prefers)
     eval = new evaluator(args);
