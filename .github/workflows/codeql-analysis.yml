@@ -46,7 +46,7 @@ jobs:
        DEPS="llvm-6.0-dev cmake libedit-dev g++ libncurses5-dev zlib1g-dev libreadline-dev python2.7"
        sudo apt update
        sudo apt install -y ${DEPS}
-       alias llvm-config='llvm-config-6.0'
+       export LLVM_DIR=`llvm-config-6.0 --cmakedir`
        cmake .
        VERBOSE=1 make
 
