@@ -670,7 +670,7 @@ int main(int argc, char** argv) {
     // read command-line arguments
     Args args = processCommandLine(argc, argv);
 
-    delete leak;
+    free(leak);
     
     // start an evaluator and process ~/.hirc if it exists
     // (this should apply whatever settings the user prefers)
